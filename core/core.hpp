@@ -10,8 +10,9 @@ private:
 
 public:
 	ICore();
-	ICore(IPanel* workspace, IPanel* info);
 	virtual ~ICore();
+
+	void init(IPanel* workspace, IPanel* info);
 
 	// Системные сообщения (общие для всех подпрограмм)
 	virtual void start(); // Когда просят запустить программу

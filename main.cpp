@@ -97,8 +97,9 @@ int main()
 
 	WindowData data;
 
-	RescueLine rescueLine;
-	PanelMain panelMain(&rescueLine);
+	PanelMain panelMain;
+	RescueLine rescueLine(&panelMain);
+	panelMain.setCore(&rescueLine);
 
 	startXlib(data, &panelMain);
 	panelMain.reshape(Rect(0, 0, panelMain.getMinWight(), panelMain.getMinHeight()));
@@ -107,7 +108,7 @@ int main()
 	EventMouse eventMouse;
 	EventMouseMemory eventMouseMemory;
 	EventKeyboard eventKeyboard;
-
+	wprintf(L">1\n");
 	bool drowing = false;
 
 	bool alive = true;

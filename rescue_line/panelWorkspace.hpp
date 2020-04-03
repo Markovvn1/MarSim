@@ -4,14 +4,17 @@
 #include "window/panel.hpp"
 
 #include "cell.hpp"
+#include "params.hpp"
 #include "physics/robot.hpp"
 
 class PanelWorkspace : public IPanel
 {
 private:
+	Params* params;
 	Cell* cells;
 	uint sz; // Размер одной ячейки
 	uint sx, sy; // Количество ячеек по x и по y
+	Rect field;
 
 	// Взаимодействие с роботом
 	bool pickRobot; // Подобрал робота (держит его мышкой)
@@ -28,7 +31,7 @@ protected:
 
 public:
 	PanelWorkspace();
-	PanelWorkspace(IPanel* parent);
+	PanelWorkspace(IPanel* parent, Params* params);
 	virtual ~PanelWorkspace();
 
 	uint sizeX();

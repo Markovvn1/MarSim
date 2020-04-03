@@ -21,8 +21,9 @@ protected:
 
 public:
 	PanelMain();
-	PanelMain(ICore* core);
 	virtual ~PanelMain();
+
+	void setCore(ICore* core);
 
 	virtual int getMinWight() const;
 	virtual int getMinHeight() const;

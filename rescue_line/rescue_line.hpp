@@ -7,10 +7,12 @@
 class RescueLine : public ICore
 {
 private:
+	Params params;
 	PanelWorkspace panelWorkspace;
 
 public:
 	RescueLine();
+	RescueLine(IPanel* parent);
 
 	// Системные сообщения (общие для всех подпрограмм)
 	void start(); // Когда просят запустить программу

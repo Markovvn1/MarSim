@@ -17,5 +17,5 @@ public:
 
 	void onClick(bool right);
 
-	void render(cairo_t* cairo, uint sz, Params const* params);
+	void render(cairo_t* cairo, uint sz, Params* params);
 };

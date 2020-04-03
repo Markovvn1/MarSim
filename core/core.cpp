@@ -6,15 +6,15 @@ ICore::ICore()
 	this->_info = NULL;
 }
 
-ICore::ICore(IPanel* workspace, IPanel* info)
-{
-	this->_workspace = workspace;
-	this->_info = info;
-}
-
 ICore::~ICore()
 {
 
+}
+
+void ICore::init(IPanel* workspace, IPanel* info)
+{
+	this->_workspace = workspace;
+	this->_info = info;
 }
 
 void ICore::start() {}

@@ -18,7 +18,7 @@ void Cell::onClick(bool right)
 
 #define COLOR_LINE 0.05, 0.05, 0.05
 
-void Cell::render(cairo_t* cairo, uint sz, Params const* params)
+void Cell::render(cairo_t* cairo, uint sz, Params* params)
 {
 	if (type == 0) return;
 

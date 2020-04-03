@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "params.hpp"
+#include "../params.hpp"
 
 using namespace std;
 

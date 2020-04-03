@@ -1,8 +1,14 @@
 #include "rescue_line.hpp"
 
-RescueLine::RescueLine() : ICore(&(IPanel)panelWorkspace, NULL)
+RescueLine::RescueLine() : ICore()
 {
-1
+
+}
+
+RescueLine::RescueLine(IPanel* parent) : ICore()
+{
+	panelWorkspace = PanelWorkspace(parent, &params);
+	ICore::init(&panelWorkspace, NULL);
 }
 
 void RescueLine::start()
