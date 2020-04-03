@@ -1,0 +1,5 @@
+#pragma once
+
+#define COLOR_PANEL_BORDER 0.22353, 0.22353, 0.22353
+#define COLOR_PANEL_MAIN 0.27843, 0.27843, 0.27843
+
