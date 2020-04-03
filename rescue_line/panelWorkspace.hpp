@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../../utils/utils.hpp"
-#include "../panel-interface.hpp"
+#include "utils/utils.hpp"
+#include "window/panel.hpp"
 
 #include "cell.hpp"
-#include "../../../physics/robot.hpp"
+#include "physics/robot.hpp"
 
 class PanelWorkspace : public IPanel
 {
@@ -28,7 +28,7 @@ protected:
 
 public:
 	PanelWorkspace();
-	PanelWorkspace(Params* params, IPanel* parent);
+	PanelWorkspace(IPanel* parent);
 	virtual ~PanelWorkspace();
 
 	uint sizeX();

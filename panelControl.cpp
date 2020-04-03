@@ -1,7 +1,7 @@
 #include "panelControl.hpp"
 
-#include "../../../utils/utils.hpp"
-#include "../../colors.hpp"
+#include "utils/utils.hpp"
+#include "colors.hpp"
 #include <iostream>
 
 using namespace std;
@@ -11,7 +11,7 @@ PanelControl::PanelControl() : IPanel()
 	sz = 0;
 }
 
-PanelControl::PanelControl(Params* params, IPanel* parent) : IPanel(params, parent)
+PanelControl::PanelControl(IPanel* parent) : IPanel(parent)
 {
 	sz = 0;
 	data[0] = false;

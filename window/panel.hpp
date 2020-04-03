@@ -3,8 +3,7 @@
 #include <cairo/cairo.h>
 
 #include "utils/utils.hpp"
-#include "params.hpp"
-#include "../event/event.hpp"
+#include "event/event.hpp"
 
 class IPanel
 {
@@ -16,7 +15,6 @@ protected:
 	IPanel* parent;
 
 	Rect rect; // Абсолютные координаты
-	Params* params;
 
 	virtual void eventRender(cairo_t* cairo);
 	virtual void eventMouse(const EventMouse& event); // Абсолютные координаты
@@ -26,7 +24,7 @@ protected:
 
 public:
 	IPanel();
-	IPanel(Params* params, IPanel* parent);
+	IPanel(IPanel* parent);
 	virtual ~IPanel();
 
 	virtual int getMinWight() const;

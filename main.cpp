@@ -13,7 +13,10 @@
 
 #include "utils/utils.hpp"
 #include "window/event/event.hpp"
-#include "window/panel/panel.hpp"
+#include "window/panel.hpp"
+
+#include "panelMain.hpp"
+#include "rescue_line/rescue_line.hpp"
 
 using namespace std;
 
@@ -80,7 +83,7 @@ void startXlib(WindowData& data, const IPanel* panel)
 	data.cairo = cairo_create(data.surface);
 }
 
-void stopXlib(WindowData& data, PanelMain& panelMain)
+void stopXlib(WindowData& data, IPanel& panelMain)
 {
 	cairo_destroy(data.cairo);
 	cairo_surface_destroy(data.surface);
@@ -94,9 +97,8 @@ int main()
 
 	WindowData data;
 
-	Params params;
-	PanelMain panelMain(&params);
-	params.robot.moveTo(CELL_SIZE * 1.5, CELL_SIZE * 1.5, M_PI);
+	RescueLine rescueLine;
+	PanelMain panelMain(&rescueLine);
 
 	startXlib(data, &panelMain);
 	panelMain.reshape(Rect(0, 0, panelMain.getMinWight(), panelMain.getMinHeight()));

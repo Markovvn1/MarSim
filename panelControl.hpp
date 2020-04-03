@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../utils/utils.hpp"
-#include "../panel-interface.hpp"
+#include "utils/utils.hpp"
+#include "window/panel.hpp"
 
 class PanelControl : public IPanel
 {
@@ -18,7 +18,7 @@ protected:
 
 public:
 	PanelControl();
-	PanelControl(Params* params, IPanel* parent);
+	PanelControl(IPanel* parent);
 	virtual ~PanelControl();
 
 	virtual int getMinWight() const;

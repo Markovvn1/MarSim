@@ -1,17 +1,17 @@
 #pragma once
 
-#include "../../utils/utils.hpp"
-#include "panel-interface.hpp"
+#include "core/core.hpp"
+#include "utils/utils.hpp"
+#include "window/panel.hpp"
 
-#include "panel.hpp"
+#include "panelControl.hpp"
 
 class PanelMain : public IPanel
 {
 private:
-	IPanel* focus = NULL;
-
+	ICore* core;
 	PanelControl panelControl;
-	PanelWorkspace panelWorkspace;
+	IPanel* focus = NULL;
 
 protected:
 	virtual void eventRender(cairo_t* cairo);
@@ -21,7 +21,7 @@ protected:
 
 public:
 	PanelMain();
-	PanelMain(Params* params);
+	PanelMain(ICore* core);
 	virtual ~PanelMain();
 
 	virtual int getMinWight() const;

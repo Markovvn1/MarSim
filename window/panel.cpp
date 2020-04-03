@@ -1,4 +1,4 @@
-#include "panel-interface.hpp"
+#include "panel.hpp"
 
 #include <stdexcept>
 #include <cstdio>
@@ -10,15 +10,13 @@ using namespace std;
 IPanel::IPanel()
 {
 	this->parent = NULL;
-	this->params = NULL;
 	this->mouseActive = false;
 	this->needRender = false;
 }
 
-IPanel::IPanel(Params* params, IPanel* parent)
+IPanel::IPanel(IPanel* parent)
 {
 	this->parent = parent;
-	this->params = params;
 	this->mouseActive = false;
 	this->needRender = false;
 }
