@@ -62,6 +62,8 @@ void PanelMain::setCore(ICore* core)
 {
 	if (!core) throw runtime_error("PanelMain::setCore(): core is NULL");
 	if (!core->getPanelWorkspace()) throw runtime_error("PanelMain::setCore(): workspace is NULL");
+	panelControl.setCore(core);
+	core->addSysMsg(&panelControl);
 	this->core = core;
 }
 

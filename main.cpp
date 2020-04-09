@@ -1,3 +1,6 @@
+// 1. Добавить проверку версий
+
+
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
@@ -108,7 +111,7 @@ int main()
 	EventMouse eventMouse;
 	EventMouseMemory eventMouseMemory;
 	EventKeyboard eventKeyboard;
-	wprintf(L">1\n");
+
 	bool drowing = false;
 
 	bool alive = true;
@@ -181,6 +184,8 @@ int main()
 			break;
 		}
 	}
+
+	rescueLine.stop();
 
 	stopXlib(data, panelMain);
 

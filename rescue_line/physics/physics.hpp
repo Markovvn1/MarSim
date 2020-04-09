@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../params.hpp"
+class RescueLine;
 
-void physics_start(Params* params);
-void physics_stop(Params* params);
+void physics_start(RescueLine* core);
+void physics_stop(RescueLine* core);

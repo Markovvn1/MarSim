@@ -1,19 +1,22 @@
 #pragma once
 
+#include "core/sysMsg.hpp"
 #include "utils/utils.hpp"
 #include "window/panel.hpp"
 
-#include "cell.hpp"
-#include "params.hpp"
 #include "physics/robot.hpp"
 
-class PanelWorkspace : public IPanel
+class Cell;
+class RescueLine;
+
+class PanelWorkspace : public IPanel, protected SysMsg
 {
+	friend class RescueLine;
+
 private:
-	Params* params;
+	RescueLine* core;
 	Cell* cells;
 	uint sz; // Размер одной ячейки
-	uint sx, sy; // Количество ячеек по x и по y
 	Rect field;
 
 	// Взаимодействие с роботом
@@ -24,6 +27,9 @@ private:
 	double rotRmin, rotRmax; // Радиусы кольца вокруг робота
 
 protected:
+	virtual void onStart();
+	virtual void onStop();
+
 	virtual void eventRender(cairo_t* cairo);
 	virtual void eventMouse(const EventMouse& event); // Абсолютные координаты
 	virtual void eventKeyboard(const EventKeyboard& event);
@@ -31,11 +37,10 @@ protected:
 
 public:
 	PanelWorkspace();
-	PanelWorkspace(IPanel* parent, Params* params);
+	PanelWorkspace(RescueLine* core, IPanel* parent);
 	virtual ~PanelWorkspace();
 
-	uint sizeX();
-	uint sizeY();
+	void updateParams();
 
 	virtual int getMinWight() const;
 	virtual int getMinHeight() const;

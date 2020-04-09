@@ -1,6 +1,9 @@
 #pragma once
 
+#include <stdint.h>
 #include <cmath>
+
+#include "rate.hpp"
 
 #ifndef NULL
 	#define NULL 0

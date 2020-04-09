@@ -6,13 +6,15 @@
 
 using namespace std;
 
-PanelControl::PanelControl() : IPanel()
+PanelControl::PanelControl() : IPanel(), SysMsg()
 {
+	core = NULL;
 	sz = 0;
 }
 
-PanelControl::PanelControl(IPanel* parent) : IPanel(parent)
+PanelControl::PanelControl(IPanel* parent) : IPanel(parent), SysMsg()
 {
+	core = NULL;
 	sz = 0;
 	data[0] = false;
 	state[0] = 0;
@@ -21,6 +23,18 @@ PanelControl::PanelControl(IPanel* parent) : IPanel(parent)
 PanelControl::~PanelControl()
 {
 
+}
+
+void PanelControl::onStart()
+{
+	data[0] = true;
+	setRender();
+}
+
+void PanelControl::onStop()
+{
+	data[0] = false;
+	setRender();
 }
 
 #define IMG_SCALE 0.8
@@ -98,7 +112,18 @@ void PanelControl::eventMouse(const EventMouse& event)
 		if (event.getButton() == M_BUTTON_L_UP)
 		{
 			state[x] = 1;
-			data[x] = !data[x];
+			switch (x)
+			{
+			case 0:
+				if (core->isActive())
+					core->stop();
+				else
+					core->start();
+				break;
+			default:
+				data[x] = !data[x];
+				break;
+			}
 		}
 
 		setRender();
@@ -125,6 +150,10 @@ void PanelControl::eventReshape(const Rect& newRect)
 	sz = newRect.height;
 }
 
+void PanelControl::setCore(ICore* core)
+{
+	this->core = core;
+}
 
 int PanelControl::getMinWight() const
 {

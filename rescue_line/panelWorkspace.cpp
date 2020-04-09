@@ -1,28 +1,29 @@
 #include "panelWorkspace.hpp"
 
+#include "cell.hpp"
+#include "rescue_line.hpp"
 #include "utils/utils.hpp"
 #include "colors.hpp"
-#include <iostream>
 
 using namespace std;
 
 PanelWorkspace::PanelWorkspace() : IPanel()
 {
-	params = NULL;
+	core = NULL;
 	sz = 0;
-	sx = 0; sy = 0;
 	cells = NULL;
 	pickRobot = pickControlCircle = activeRobot = false;
 	pickDx = pickDy = pickDA = 0;
 	rotRmin = rotRmax = 0;
 }
 
-PanelWorkspace::PanelWorkspace(IPanel* parent, Params* params) : IPanel(parent)
+PanelWorkspace::PanelWorkspace(RescueLine* core, IPanel* parent) : IPanel(parent)
 {
-	this->params = params;
+	Params* params = core->getParams();
+
+	this->core = core;
 	sz = 0;
-	sx = 8; sy = 6;
-	cells = new Cell[sx * sy];
+	cells = new Cell[params->sx * params->sy];
 	pickRobot = pickControlCircle = activeRobot = false;
 	pickDx = pickDy = pickDA = 0;
 	rotRmin = rotRmax = 0;
@@ -36,8 +37,20 @@ PanelWorkspace::~PanelWorkspace()
 #define COLOR_BACKGROUND 0.95, 0.95, 0.95
 #define COLOR_GRID 0.32, 0.32, 0.32
 
+void PanelWorkspace::onStart()
+{
+	pickRobot = pickControlCircle = activeRobot = false;
+}
+
+void PanelWorkspace::onStop()
+{
+
+}
+
 void PanelWorkspace::eventRender(cairo_t* cairo)
 {
+	Params* params = core->getParams();
+
 	cairo_save(cairo);
 	cairo_translate(cairo, field.x, field.y);
 
@@ -49,31 +62,31 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 	cairo_fill(cairo);
 
 	// Render cells
-	for (uint y = 0; y < sy; y++)
+	for (uint y = 0; y < params->sy; y++)
 	{
-		for (uint x = 0; x < sx; x++)
+		for (uint x = 0; x < params->sx; x++)
 		{
-			cells[y * sx + x].render(cairo, sz, params);
+			cells[y * params->sx + x].render(cairo, sz, params);
 			cairo_translate(cairo, sz, 0);
 		}
-		cairo_translate(cairo, -sz * sx, sz);
+		cairo_translate(cairo, -sz * params->sx, sz);
 	}
-	cairo_translate(cairo, 0, -sz * sy);
+	cairo_translate(cairo, 0, -sz * params->sy);
 
 
 	// Render grid
 	cairo_set_line_width(cairo, 1);
 
-	for (uint i = 1; i < sy; i++)
+	for (uint i = 1; i < params->sy; i++)
 	{
-		uint y = field.height * i / sy;
+		uint y = field.height * i / params->sy;
 		cairo_move_to(cairo, 0, y + 0.5);
 		cairo_line_to(cairo, field.width, y + 0.5);
 	}
 
-	for (uint i = 1; i < sx; i++)
+	for (uint i = 1; i < params->sx; i++)
 	{
-		uint x = field.width * i / sx;
+		uint x = field.width * i / params->sx;
 		cairo_move_to(cairo, x + 0.5, 0);
 		cairo_line_to(cairo, x + 0.5, field.height);
 	}
@@ -97,10 +110,14 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 	cairo_reset_clip(cairo);
 
 	cairo_restore(cairo);
+
+	if (core->isActive()) setRender(); // animation
 }
 
 void PanelWorkspace::eventMouse(const EventMouse& event)
 {
+	Params* params = core->getParams();
+
 	// Обработка поднимания кольца
 	if (event.getButton() == M_BUTTON_L_DOWN && activeRobot && !pickControlCircle)
 	{
@@ -183,7 +200,7 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 		int x = (event.x - field.x) / sz;
 		int y = (event.y - field.y) / sz;
 
-		cells[y * sx + x].onClick(event.getButton() == M_BUTTON_R_DOWN);
+		cells[y * params->sx + x].onClick(event.getButton() == M_BUTTON_R_DOWN);
 
 		setRender();
 	}
@@ -196,34 +213,31 @@ void PanelWorkspace::eventKeyboard(const EventKeyboard& event)
 
 void PanelWorkspace::eventReshape(const Rect& newRect)
 {
-	sz = min(newRect.width / sx, newRect.height / sy);
+	Params* params = core->getParams();
+
+	sz = min(newRect.width / params->sx, newRect.height / params->sy);
 	rotRmin = sz * 0.7;
 	rotRmax = sz * 0.9;
 
-	field.width = sz * sx;
-	field.height = sz * sy;
+	field.width = sz * params->sx;
+	field.height = sz * params->sy;
 	field.x = newRect.x + (newRect.width - field.width) / 2;
 	field.y = newRect.y + (newRect.height - field.height) / 2;
 }
 
 
 
-uint PanelWorkspace::sizeX()
+void PanelWorkspace::updateParams()
 {
-	return sx;
-}
-
-uint PanelWorkspace::sizeY()
-{
-	return sy;
+	eventReshape(rect);
 }
 
 int PanelWorkspace::getMinWight() const
 {
-	return 40 * sx;
+	return 320;
 }
 
 int PanelWorkspace::getMinHeight() const
 {
-	return 40 * sy;
+	return 240;
 }

@@ -12,7 +12,11 @@ Robot::Robot()
 {
 	x = y = angle = 0;
 	h = 0.2;
-	w = 0.2;
+	w = 0.17;
+	mL = mR = 0;
+	mL = M_PI * 2;
+	wheel_w = 0.03;
+	wheel_r = 0.03;
 }
 
 Robot::Robot(double x, double y, double angle) : Robot()
@@ -31,7 +35,7 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha, Params const* params)
 	cairo_rotate(cairo, angle);
 
 	// Основа
-	cairo_rectangle(cairo, -(w - 0.03) / 2, -h / 2, w - 0.03, h);
+	cairo_rectangle(cairo, -w / 2, -h / 2, w, h);
 	cairo_set_source_rgba(cairo, 0.5, 0.5, 0.5, alpha);
 	cairo_fill(cairo);
 
@@ -48,12 +52,23 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha, Params const* params)
 
 	// Колеса
 	cairo_set_source_rgba(cairo, 0.2, 0.2, 0.2, alpha);
-	cairo_rectangle(cairo, -w / 2, -0.06 / 2, 0.03, 0.06);
+	cairo_rectangle(cairo, -(w + wheel_w) / 2, -wheel_r, wheel_r, wheel_r * 2);
 	cairo_fill(cairo);
-	cairo_rectangle(cairo, w / 2, -0.06 / 2, -0.03, 0.06);
+	cairo_rectangle(cairo, (w + wheel_w) / 2, -wheel_r, -wheel_w, wheel_r * 2);
 	cairo_fill(cairo);
 
 	cairo_restore(cairo);
+}
+
+void Robot::update(double t)
+{
+	double iv = (mR + mL) * wheel_r / 2 * t; // м
+	double iw = (mR - mL) * wheel_r / w * t; // рад
+
+	x += -sin(angle + iw / 2) * iv;
+	y += cos(angle + iw / 2) * iv;
+
+	angle += iw;
 }
 
 bool Robot::isRobot(double cx, double cy)
@@ -95,6 +110,12 @@ void Robot::moveTo(double x, double y, double angle)
 	this->x = x;
 	this->y = y;
 	this->angle = angle;
+}
+
+void Robot::setSpeed(double mL, double mR)
+{
+	this->mL = mL;
+	this->mR = mR;
 }
 
 void Robot::addSensor(double x, double y)
