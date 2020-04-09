@@ -79,7 +79,7 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha)
 
 	cairo_restore(cairo);
 }
-#include <iostream>
+
 void Robot::update(double t)
 {
 	double iv = (mR + mL) * wheel_r / 2 * t; // м

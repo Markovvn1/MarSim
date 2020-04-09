@@ -13,6 +13,11 @@ private:
 	PanelControl panelControl;
 	IPanel* focus = NULL;
 
+	// Double-buffering
+	int doubleW, doubleH;
+	cairo_surface_t* doubleSurface;
+	cairo_t* doubleCairo;
+
 protected:
 	virtual void eventRender(cairo_t* cairo);
 	virtual void eventMouse(const EventMouse& event); // Абсолютные координаты
