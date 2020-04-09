@@ -66,7 +66,7 @@ void* server_thr(void* ptr)
 				}
 
 				client.send((const char*)&len, 4);
-				client.send(data, len);
+				client.send(answer, len);
 
 				if (answer) delete [] answer;
 			}

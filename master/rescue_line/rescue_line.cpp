@@ -1,5 +1,3 @@
-// 1. Добавить не идеальность в симуляцию
-
 #include "rescue_line.hpp"
 
 #include <cmath>
@@ -11,7 +9,7 @@ RescueLine::RescueLine() : ICore()
 
 RescueLine::RescueLine(IPanel* parent) : ICore()
 {
-	params.robot.moveTo(CELL_SIZE * 1.5, CELL_SIZE * 1.5, M_PI);
+	params.robot = Robot(CELL_SIZE * 1.5, CELL_SIZE * 1.5, M_PI, &params);
 	panelWorkspace = PanelWorkspace(this, parent);
 	ICore::init(&panelWorkspace, NULL);
 	addSysMsg(&panelWorkspace);
@@ -32,12 +30,12 @@ void RescueLine::assertMsgLen(uint32_t len, uint32_t target)
 
 void RescueLine::onStart()
 {
-	printf("onStart\n");
+
 }
 
 void RescueLine::onStop()
 {
-	printf("onStop\n");
+
 }
 
 uint32_t RescueLine::onMessage(uint16_t type, uint32_t len, const char* data, char*& answer)
@@ -46,19 +44,24 @@ uint32_t RescueLine::onMessage(uint16_t type, uint32_t len, const char* data, ch
 
 	switch (type)
 	{
-	case 1024:
+	case 1024: // moveTo
 	{
-		assertMsgLen(len, 4);
-		int16_t* speeds = (int16_t*)data;
-		printf("setSpeed(%d, %d)\n", speeds[0], speeds[1]);
-		break;
+		assertMsgLen(len, 12);
+		float* d = (float*)data;
+		params.robot.moveTo(d[0], d[1], d[2]);
+		return 0;
+	}
+	case 1025: // setSpeed
+	{
+		assertMsgLen(len, 8);
+		float* speeds = (float*)data;
+		params.robot.setSpeed(speeds[0], speeds[1]);
+		return 0;
 	}
 	default:
-		printf("onMessage(%d, %d): unknown type\n", type, len);
-		break;
+		wprintf(L"[WARN] onMessage(%d, %d): unknown type\n", type, len);
+		return 0;
 	}
-
-	return 0;
 }
 
 void RescueLine::onFree(uint32_t len, char* answer)

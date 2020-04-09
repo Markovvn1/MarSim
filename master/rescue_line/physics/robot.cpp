@@ -10,23 +10,43 @@ using namespace std;
 
 Robot::Robot()
 {
+	params = NULL;
 	x = y = angle = 0;
 	h = 0.2;
 	w = 0.17;
 	mL = mR = 0;
-	mL = M_PI * 2;
 	wheel_w = 0.03;
 	wheel_r = 0.03;
 }
 
-Robot::Robot(double x, double y, double angle) : Robot()
+Robot::Robot(double x, double y, double angle, Params* params) : Robot()
 {
+	this->params = params;
 	this->x = x;
 	this->y = y;
 	this->angle = angle;
 }
 
-void Robot::render(cairo_t* cairo, uint sz, double alpha, Params const* params)
+void Robot::checkPos()
+{
+	// Нормализация угла
+	if (angle > M_PI || angle < -M_PI)
+	{
+		int count = (angle + M_PI) / (M_PI * 2);
+		if (count > 0)
+			angle -= count * M_PI * 2;
+		else
+			angle -= (count - 1) * M_PI * 2;
+	}
+
+	// Проверка на выход за карту
+	if (x < 0) x = 0;
+	if (y < 0) y = 0;
+	if (x > params->sx * CELL_SIZE) x = params->sx * CELL_SIZE;
+	if (y > params->sy * CELL_SIZE) y = params->sy * CELL_SIZE;
+}
+
+void Robot::render(cairo_t* cairo, uint sz, double alpha)
 {
 	cairo_save(cairo);
 	cairo_scale(cairo, sz / CELL_SIZE, sz / CELL_SIZE);
@@ -59,16 +79,18 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha, Params const* params)
 
 	cairo_restore(cairo);
 }
-
+#include <iostream>
 void Robot::update(double t)
 {
 	double iv = (mR + mL) * wheel_r / 2 * t; // м
 	double iw = (mR - mL) * wheel_r / w * t; // рад
 
+	// Расчет физики
 	x += -sin(angle + iw / 2) * iv;
 	y += cos(angle + iw / 2) * iv;
-
 	angle += iw;
+
+	checkPos();
 }
 
 bool Robot::isRobot(double cx, double cy)
@@ -110,6 +132,8 @@ void Robot::moveTo(double x, double y, double angle)
 	this->x = x;
 	this->y = y;
 	this->angle = angle;
+
+	checkPos();
 }
 
 void Robot::setSpeed(double mL, double mR)

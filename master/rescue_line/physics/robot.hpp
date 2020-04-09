@@ -9,6 +9,7 @@ struct Params;
 class Robot
 {
 private:
+	Params* params;
 	double x, y;
 	double angle;
 	double mL, mR; // скорость вращения колес в рад/сек
@@ -19,11 +20,13 @@ private:
 
 	std::vector<std::pair<double, double>> sensors; // Координаты сенсоров
 
+	void checkPos(); // Проверка выхода за границы, нормализация угла
+
 public:
 	Robot();
-	Robot(double x, double y, double angle);
+	Robot(double x, double y, double angle, Params* params);
 
-	void render(cairo_t* cairo, uint sz, double alpha, Params const* params);
+	void render(cairo_t* cairo, uint sz, double alpha);
 	void update(double t); // Посчитать физику. Считать что за время t (сек) объекты не меняли скорость
 
 	// Находится ли на координатах (сx, сy) робот

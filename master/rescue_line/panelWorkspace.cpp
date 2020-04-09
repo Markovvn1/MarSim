@@ -95,7 +95,7 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 	cairo_stroke(cairo);
 
 	// Render robot
-	params->robot.render(cairo, sz, pickRobot ? 0.4 : 0.8, params);
+	params->robot.render(cairo, sz, pickRobot ? 0.4 : 0.8);
 	if (activeRobot)
 	{
 		cairo_arc(
@@ -116,6 +116,8 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 
 void PanelWorkspace::eventMouse(const EventMouse& event)
 {
+	if (core->isActive()) return; // Не принимаем никакие команды пока работает симуляция
+
 	Params* params = core->getParams();
 
 	// Обработка поднимания кольца
