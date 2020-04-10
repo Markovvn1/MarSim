@@ -2,8 +2,13 @@
 
 #include "cell.hpp"
 #include "rescue_line.hpp"
+#include "utils/rate.hpp"
 #include "utils/utils.hpp"
+#include "utils/graphics.hpp"
 #include "colors.hpp"
+
+#define FIELD_SZ 200
+#define FIELD_SMOOTH_K 0.7
 
 using namespace std;
 
@@ -15,6 +20,11 @@ PanelWorkspace::PanelWorkspace() : IPanel()
 	pickRobot = pickControlCircle = activeRobot = false;
 	pickDx = pickDy = pickDA = 0;
 	rotRmin = rotRmax = 0;
+
+	fieldSurface = NULL;
+	fieldCairo = NULL;
+	fieldData = NULL;
+	fieldStride = 0;
 }
 
 PanelWorkspace::PanelWorkspace(RescueLine* core, IPanel* parent) : IPanel(parent)
@@ -27,6 +37,11 @@ PanelWorkspace::PanelWorkspace(RescueLine* core, IPanel* parent) : IPanel(parent
 	pickRobot = pickControlCircle = activeRobot = false;
 	pickDx = pickDy = pickDA = 0;
 	rotRmin = rotRmax = 0;
+
+	fieldSurface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, params->sx * FIELD_SZ, params->sy * FIELD_SZ);
+	fieldCairo = cairo_create(fieldSurface);
+	fieldStride = cairo_image_surface_get_stride(fieldSurface);
+	fieldData = cairo_image_surface_get_data(fieldSurface);
 }
 
 PanelWorkspace::~PanelWorkspace()
@@ -39,7 +54,23 @@ PanelWorkspace::~PanelWorkspace()
 
 void PanelWorkspace::onStart()
 {
+	Params* params = core->getParams();
 	pickRobot = pickControlCircle = activeRobot = false;
+
+	uint64_t t = getCTimeMicrosecond();
+	drawField(fieldCairo, FIELD_SZ);
+	cairo_surface_flush(fieldSurface);
+
+	float r = FIELD_SZ / (float)CELL_SIZE * FIELD_SMOOTH_K * params->line_thickness;
+	gaussianBlur(fieldData, params->sx * FIELD_SZ, params->sy * FIELD_SZ, fieldStride, r);
+
+	wprintf(L"Time: %f\n", (getCTimeMicrosecond() - t) / 1e6);
+
+	FILE* f = fopen("image.raw", "wb");
+	wprintf(L"w: %d, h: %d\n", params->sx * FIELD_SZ, params->sy * FIELD_SZ);
+	for (uint y = 0; y < params->sy * FIELD_SZ; y++)
+		fwrite(fieldData + y * fieldStride, 1, params->sx * FIELD_SZ * 4, f);
+	fclose(f);
 }
 
 void PanelWorkspace::onStop()
@@ -57,22 +88,8 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 	cairo_rectangle(cairo, 0, 0, field.width, field.height);
 	cairo_clip(cairo);
 	cairo_new_path(cairo);
-	cairo_rectangle(cairo, 0, 0, field.width, field.height);
-	cairo_set_source_rgb(cairo, COLOR_BACKGROUND);
-	cairo_fill(cairo);
 
-	// Render cells
-	for (uint y = 0; y < params->sy; y++)
-	{
-		for (uint x = 0; x < params->sx; x++)
-		{
-			cells[y * params->sx + x].render(cairo, sz, params);
-			cairo_translate(cairo, sz, 0);
-		}
-		cairo_translate(cairo, -sz * params->sx, sz);
-	}
-	cairo_translate(cairo, 0, -sz * params->sy);
-
+	drawField(cairo, sz);
 
 	// Render grid
 	cairo_set_line_width(cairo, 1);
@@ -228,6 +245,26 @@ void PanelWorkspace::eventReshape(const Rect& newRect)
 }
 
 
+void PanelWorkspace::drawField(cairo_t* cairo, uint sz)
+{
+	Params* params = core->getParams();
+
+	cairo_rectangle(cairo, 0, 0, sz * params->sx, sz * params->sy);
+	cairo_set_source_rgb(cairo, COLOR_BACKGROUND);
+	cairo_fill(cairo);
+
+	// Render cells
+	for (uint y = 0; y < params->sy; y++)
+	{
+		for (uint x = 0; x < params->sx; x++)
+		{
+			cells[y * params->sx + x].render(cairo, sz, params);
+			cairo_translate(cairo, sz, 0);
+		}
+		cairo_translate(cairo, -sz * params->sx, sz);
+	}
+	cairo_translate(cairo, 0, -sz * params->sy);
+}
 
 void PanelWorkspace::updateParams()
 {

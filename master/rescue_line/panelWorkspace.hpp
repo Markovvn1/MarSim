@@ -26,6 +26,12 @@ private:
 	double pickDx, pickDy, pickDA;
 	double rotRmin, rotRmax; // Радиусы кольца вокруг робота
 
+	// Для определения цвета под роботом
+	uint8_t* fieldData;
+	uint fieldStride;
+	cairo_surface_t* fieldSurface;
+	cairo_t* fieldCairo;
+
 protected:
 	virtual void onStart();
 	virtual void onStop();
@@ -40,7 +46,8 @@ public:
 	PanelWorkspace(RescueLine* core, IPanel* parent);
 	virtual ~PanelWorkspace();
 
-	void updateParams();
+	void drawField(cairo_t* cairo, uint sz);
+	void updateParams(); // Вызвать, если глобальные параметры были обновлены (например, размеры поля)
 
 	virtual int getMinWight() const;
 	virtual int getMinHeight() const;
