@@ -52,14 +52,15 @@ void startXlib(WindowData& data, const IPanel* panel)
 
 
 	Rect rect;
-	rect.width = panel->getMinWight();
-	rect.height = panel->getMinHeight();
+	rect.width = max(panel->getMinWight(), DisplayWidth(data.display, data.screen) * 2 / 3);
+	rect.height = max(panel->getMinHeight(), DisplayHeight(data.display, data.screen) * 2 / 3);
 	if (rect.width < 0 || rect.height < 0) throw runtime_error("startXlib(): width < 0 || height < 0");
 	rect.x = (DisplayWidth(data.display, data.screen) - rect.width) / 2;
 	rect.y = (DisplayHeight(data.display, data.screen) - rect.height) / 2;
 	data.window = XCreateSimpleWindow(data.display, RootWindow(data.display, data.screen),
 									 rect.x, rect.y, rect.width, rect.height,
 									 0, BlackPixel(data.display, data.screen), 0x474747);
+	XStoreName(data.display, data.window, "MarSim | by Markovvn1");
 
 	// Для корректного завершения
 	data.deleteWindowEvent = XInternAtom(data.display, "WM_DELETE_WINDOW", 0);

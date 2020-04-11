@@ -14,7 +14,9 @@ class Robot
 private:
 	Params* params;
 	double x, y;
-	double angle; double sinA, cosA;
+	double angle;
+	bool needUpdateSinCos; // Если угол изменился
+	double sinA, cosA;
 	double mL, mR; // скорость вращения колес в рад/сек
 
 	// Размеры
@@ -23,6 +25,7 @@ private:
 
 	Sensors sensors; // Координаты сенсоров
 
+	void updateSinCos();
 	void checkPos(); // Проверка выхода за границы, нормализация угла
 
 public:

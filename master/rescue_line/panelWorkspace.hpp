@@ -33,6 +33,7 @@ private:
 	cairo_t* fieldCairo;
 
 	void drawField(cairo_t* cairo, uint sz);
+	void updateFieldForSensors();
 
 protected:
 	virtual void onStart();

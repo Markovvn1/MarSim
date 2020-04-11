@@ -20,8 +20,8 @@ void* physics_thr(void* ptr)
 	{
 		if (!core.isActive()) usleep(10000);
 
-		Rate rate(100);
-		double t = 1. / 100;
+		Rate rate(50);
+		double t = 1. / 50;
 		while (core.isActive())
 		{
 			core.getParams()->robot.update(t);

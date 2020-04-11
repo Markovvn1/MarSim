@@ -26,7 +26,7 @@ def deinit():
 	__socket = None
 
 
-def _send(t, data=None): # format, type
+def _send(t, data=None): # type
 	global __socket
 
 	if __socket is None:
@@ -73,8 +73,15 @@ class Robot:
 	def addSensor(self, x, y):
 		_send(1026, struct.pack("ff", x, y))
 
-	def readSensors(self):
-		return _send(1027)
+	def readSensors(self, format="rgb"):
+		ans = _send(1027)
+
+		if format == "rgb":
+			return [(ans[i + 0], ans[i + 1], ans[i + 2]) for i in range(0, len(ans), 3)]
+		elif format == "gray":
+			return [0.3 * ans[i + 0] + 0.59 * ans[i + 1] + 0.11 * ans[i + 2] for i in range(0, len(ans), 3)]
+		else:
+			raise ValueError("format should be 'rgb' or 'gray'")
 
 
 import atexit

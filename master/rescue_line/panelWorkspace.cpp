@@ -1,5 +1,7 @@
 #include "panelWorkspace.hpp"
 
+#include <X11/keysym.h>
+
 #include "cell.hpp"
 #include "rescue_line.hpp"
 #include "utils/rate.hpp"
@@ -42,6 +44,8 @@ PanelWorkspace::PanelWorkspace(RescueLine* core, IPanel* parent) : IPanel(parent
 	fieldCairo = cairo_create(fieldSurface);
 	fieldStride = cairo_image_surface_get_stride(fieldSurface);
 	fieldData = cairo_image_surface_get_data(fieldSurface);
+
+	updateFieldForSensors();
 }
 
 PanelWorkspace::~PanelWorkspace()
@@ -54,30 +58,9 @@ PanelWorkspace::~PanelWorkspace()
 
 void PanelWorkspace::onStart()
 {
-	Params* params = core->getParams();
 	pickRobot = pickControlCircle = activeRobot = false;
 
-//	uint64_t t = getCTimeMicrosecond();
-	drawField(fieldCairo, FIELD_SZ);
-	cairo_surface_flush(fieldSurface);
-
-	float r = FIELD_SZ / (float)CELL_SIZE * FIELD_SMOOTH_K * params->line_thickness;
-	gaussianBlur(fieldData, params->sx * FIELD_SZ, params->sy * FIELD_SZ, fieldStride, r);
-
-//	wprintf(L"Time: %f\n", (getCTimeMicrosecond() - t) / 1e6);
-
-//	FILE* f = fopen("image.raw", "wb");
-//	wprintf(L"w: %d, h: %d\n",
-//			params->sx * FIELD_SZ * 9 - params->sx * FIELD_SZ * 5,
-//			params->sy * FIELD_SZ * 3 - params->sy * FIELD_SZ * 2);
-//
-//	for (uint y = params->sy * FIELD_SZ * 2; y < params->sy * FIELD_SZ * 3; y++)
-//		for (uint x = params->sx * FIELD_SZ * 5; x < params->sx * FIELD_SZ * 9; x++)
-//		{
-//			int res = getColor(x / 10. + 0.5, y / 10. + 0.5);
-//			fwrite(&res, 4, 1, f);
-//		}
-//	fclose(f);
+	updateFieldForSensors();
 }
 
 void PanelWorkspace::onStop()
@@ -234,7 +217,13 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 
 void PanelWorkspace::eventKeyboard(const EventKeyboard& event)
 {
-//	wcout << event << endl;
+	if (event.keysym == XK_space && event.type == K_KEYDOWN)
+	{
+		if (core->isActive())
+			core->stop();
+		else
+			core->start();
+	}
 }
 
 void PanelWorkspace::eventReshape(const Rect& newRect)
@@ -271,6 +260,17 @@ void PanelWorkspace::drawField(cairo_t* cairo, uint sz)
 		cairo_translate(cairo, -sz * params->sx, sz);
 	}
 	cairo_translate(cairo, 0, -sz * params->sy);
+}
+
+void PanelWorkspace::updateFieldForSensors()
+{
+	Params* params = core->getParams();
+
+	drawField(fieldCairo, FIELD_SZ);
+	cairo_surface_flush(fieldSurface);
+
+	float r = FIELD_SZ / (float)CELL_SIZE * FIELD_SMOOTH_K * params->line_thickness;
+	gaussianBlur(fieldData, params->sx * FIELD_SZ, params->sy * FIELD_SZ, fieldStride, r);
 }
 
 void PanelWorkspace::updateParams()

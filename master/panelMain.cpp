@@ -45,7 +45,8 @@ void PanelMain::eventMouse(const EventMouse& event)
 
 void PanelMain::eventKeyboard(const EventKeyboard& event)
 {
-	if (focus != this && focus != NULL) focus->keyboard(event);
+	core->getPanelWorkspace()->keyboard(event);
+//	if (focus != this && focus != NULL) focus->keyboard(event);
 
 //	wcout << event << endl;
 }

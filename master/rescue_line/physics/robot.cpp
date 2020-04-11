@@ -18,6 +18,7 @@ Robot::Robot()
 	mL = mR = 0;
 	wheel_w = 0.03;
 	wheel_r = 0.03;
+	needUpdateSinCos = true;
 }
 
 Robot::Robot(double x, double y, double angle, Params* params) : Robot()
@@ -26,6 +27,16 @@ Robot::Robot(double x, double y, double angle, Params* params) : Robot()
 	this->x = x;
 	this->y = y;
 	this->angle = angle;
+}
+
+void Robot::updateSinCos()
+{
+	if (!needUpdateSinCos) return;
+
+	sinA = sin(angle);
+	cosA = cos(angle);
+
+	needUpdateSinCos = false;
 }
 
 void Robot::checkPos()
@@ -91,8 +102,7 @@ void Robot::update(double t)
 	y += sin(angle + iw / 2) * iv;
 	angle += iw;
 
-	sinA = sin(angle);
-	cosA = cos(angle);
+	needUpdateSinCos = true;
 
 	checkPos();
 }
@@ -106,6 +116,8 @@ bool Robot::isRobot(double cx, double cy)
 	if (r * 4 > h * h + w * w) return false;
 	double mi = min(h, w);
 	if (r * 4 < mi * mi) return true;
+
+	updateSinCos();
 
 	// precomputation
 	double pdx = cosA * h / 2 + sinA * w / 2;
@@ -134,10 +146,8 @@ void Robot::moveTo(double x, double y, double angle)
 {
 	this->x = x;
 	this->y = y;
+	needUpdateSinCos = this->angle != angle;
 	this->angle = angle;
-
-	sinA = sin(angle);
-	cosA = cos(angle);
 
 	checkPos();
 }
@@ -157,6 +167,8 @@ pair<double, double> Robot::getSensor(int i)
 {
 	const double& sx = sensors[i].first;
 	const double& sy = sensors[i].second;
+
+	updateSinCos();
 
 	return {x + sy * cosA - sx * sinA, y + sy * sinA + sx * cosA};
 }

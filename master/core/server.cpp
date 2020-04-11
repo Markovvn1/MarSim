@@ -76,7 +76,7 @@ void* server_thr(void* ptr)
 				len = core.onMessage(type, len, data, answer);
 
 				client.send((const char*)&len, 4);
-				client.send(data, len);
+				client.send(answer, len);
 
 				core.onFree(len, answer);
 			}

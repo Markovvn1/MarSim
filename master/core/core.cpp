@@ -37,10 +37,11 @@ void ICore::onFree(uint32_t len, char* answer) {}
 void ICore::start()
 {
 	if (isActive()) return;
-	active = true;
 
 	onStart();
 	for (SysMsg*& sysMsg : sysMsgs) sysMsg->onStart();
+
+	active = true;
 }
 
 void ICore::stop()
