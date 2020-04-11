@@ -1,3 +1,5 @@
+# 1. Сделать корректное завершение в случае закрытия соединения со стороны мастера
+
 import math
 import struct
 import socket
@@ -67,6 +69,12 @@ class Robot:
 
 	def setSpeed(self, motorL, motorR):
 		_send(1025, struct.pack("ff", motorL, motorR))
+
+	def addSensor(self, x, y):
+		_send(1026, struct.pack("ff", x, y))
+
+	def readSensors(self):
+		return _send(1027)
 
 
 import atexit

@@ -32,6 +32,8 @@ private:
 	cairo_surface_t* fieldSurface;
 	cairo_t* fieldCairo;
 
+	void drawField(cairo_t* cairo, uint sz);
+
 protected:
 	virtual void onStart();
 	virtual void onStop();
@@ -46,8 +48,9 @@ public:
 	PanelWorkspace(RescueLine* core, IPanel* parent);
 	virtual ~PanelWorkspace();
 
-	void drawField(cairo_t* cairo, uint sz);
 	void updateParams(); // Вызвать, если глобальные параметры были обновлены (например, размеры поля)
+
+	int getColor(double x, double y); // получить цвет под точкой (x, y)
 
 	virtual int getMinWight() const;
 	virtual int getMinHeight() const;

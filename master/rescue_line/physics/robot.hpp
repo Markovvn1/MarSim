@@ -3,22 +3,25 @@
 #include <stdlib.h>
 #include <cairo/cairo.h>
 #include <vector>
+#include <stdint.h>
 
 struct Params;
+
+typedef std::vector<std::pair<double, double>> Sensors;
 
 class Robot
 {
 private:
 	Params* params;
 	double x, y;
-	double angle;
+	double angle; double sinA, cosA;
 	double mL, mR; // скорость вращения колес в рад/сек
 
 	// Размеры
 	double h, w; // height, width
 	double wheel_w, wheel_r;
 
-	std::vector<std::pair<double, double>> sensors; // Координаты сенсоров
+	Sensors sensors; // Координаты сенсоров
 
 	void checkPos(); // Проверка выхода за границы, нормализация угла
 
@@ -39,5 +42,7 @@ public:
 	void moveTo(double x, double y, double angle);
 	void setSpeed(double mL, double mR); // скорость вращения колес в рад/сек
 
+	int lenSensors();
+	std::pair<double, double> getSensor(int i);
 	void addSensor(double x, double y);
 };

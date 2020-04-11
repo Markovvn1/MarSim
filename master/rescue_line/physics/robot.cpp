@@ -12,6 +12,7 @@ Robot::Robot()
 {
 	params = NULL;
 	x = y = angle = 0;
+	sinA = 0; cosA = 1;
 	h = 0.2;
 	w = 0.17;
 	mL = mR = 0;
@@ -51,8 +52,8 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha)
 	cairo_save(cairo);
 	cairo_scale(cairo, sz / CELL_SIZE, sz / CELL_SIZE);
 
-	cairo_translate(cairo, x, y);
-	cairo_rotate(cairo, angle);
+	cairo_translate(cairo, x, CELL_SIZE * params->sy - y);
+	cairo_rotate(cairo, -angle - M_PI / 2);
 
 	// Основа
 	cairo_rectangle(cairo, -w / 2, -h / 2, w, h);
@@ -67,7 +68,7 @@ void Robot::render(cairo_t* cairo, uint sz, double alpha)
 	// Датчики
 	cairo_set_source_rgba(cairo, 0.8, 0.1, 0.1, alpha);
 	for (const std::pair<double, double>& p : sensors)
-		cairo_arc(cairo, p.first, p.second, 0.02, 0, 2 * M_PI);
+		cairo_arc(cairo, p.first, p.second, params->line_thickness, 0, 2 * M_PI);
 	cairo_fill(cairo);
 
 	// Колеса
@@ -86,9 +87,12 @@ void Robot::update(double t)
 	double iw = (mR - mL) * wheel_r / w * t; // рад
 
 	// Расчет физики
-	x += -sin(angle + iw / 2) * iv;
-	y += cos(angle + iw / 2) * iv;
+	x += cos(angle + iw / 2) * iv;
+	y += sin(angle + iw / 2) * iv;
 	angle += iw;
+
+	sinA = sin(angle);
+	cosA = cos(angle);
 
 	checkPos();
 }
@@ -104,21 +108,20 @@ bool Robot::isRobot(double cx, double cy)
 	if (r * 4 < mi * mi) return true;
 
 	// precomputation
-	double sinA = sin(angle), cosA = cos(angle);
-	double pdx = cosA * w / 2 - sinA * h / 2;
-	double pdy = sinA * w / 2 + cosA * h / 2;
+	double pdx = cosA * h / 2 + sinA * w / 2;
+	double pdy = sinA * h / 2 - cosA * w / 2;
 
-	double px = dx - pdx, py = dy - pdy;
-	// vector product: (px; py) x (sinA; -cosA)
-	if (px * -cosA - py * sinA < 0) return false;
-	// vector product: (px; py) x (-cosA; -sinA)
-	if (px * -sinA - py * -cosA > 0) return false;
-
-	px = dx + pdx, py = dy + pdy;
+	double px = dx + pdx, py = dy + pdy;
 	// vector product: (px; py) x (cosA; sinA)
-	if (px * sinA - py * cosA > 0) return false;
+	if (px * sinA - py * cosA < 0) return false;
+	// vector product: (px; py) x (sinA; -cosA)
+	if (px * -cosA - py * sinA > 0) return false;
+
+	px = dx - pdx, py = dy - pdy;
 	// vector product: (px; py) x (-sinA; cosA)
-	if (px * cosA - py * -sinA < 0) return false;
+	if (px * cosA - py * -sinA > 0) return false;
+	// vector product: (px; py) x (-cosA; -sinA)
+	if (px * -sinA - py * -cosA < 0) return false;
 
 	return true;
 }
@@ -133,6 +136,9 @@ void Robot::moveTo(double x, double y, double angle)
 	this->y = y;
 	this->angle = angle;
 
+	sinA = sin(angle);
+	cosA = cos(angle);
+
 	checkPos();
 }
 
@@ -140,6 +146,19 @@ void Robot::setSpeed(double mL, double mR)
 {
 	this->mL = mL;
 	this->mR = mR;
+}
+
+int Robot::lenSensors()
+{
+	return sensors.size();
+}
+
+pair<double, double> Robot::getSensor(int i)
+{
+	const double& sx = sensors[i].first;
+	const double& sy = sensors[i].second;
+
+	return {x + sy * cosA - sx * sinA, y + sy * sinA + sx * cosA};
 }
 
 void Robot::addSensor(double x, double y)

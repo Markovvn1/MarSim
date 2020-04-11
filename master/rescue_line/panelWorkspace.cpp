@@ -57,20 +57,27 @@ void PanelWorkspace::onStart()
 	Params* params = core->getParams();
 	pickRobot = pickControlCircle = activeRobot = false;
 
-	uint64_t t = getCTimeMicrosecond();
+//	uint64_t t = getCTimeMicrosecond();
 	drawField(fieldCairo, FIELD_SZ);
 	cairo_surface_flush(fieldSurface);
 
 	float r = FIELD_SZ / (float)CELL_SIZE * FIELD_SMOOTH_K * params->line_thickness;
 	gaussianBlur(fieldData, params->sx * FIELD_SZ, params->sy * FIELD_SZ, fieldStride, r);
 
-	wprintf(L"Time: %f\n", (getCTimeMicrosecond() - t) / 1e6);
+//	wprintf(L"Time: %f\n", (getCTimeMicrosecond() - t) / 1e6);
 
-	FILE* f = fopen("image.raw", "wb");
-	wprintf(L"w: %d, h: %d\n", params->sx * FIELD_SZ, params->sy * FIELD_SZ);
-	for (uint y = 0; y < params->sy * FIELD_SZ; y++)
-		fwrite(fieldData + y * fieldStride, 1, params->sx * FIELD_SZ * 4, f);
-	fclose(f);
+//	FILE* f = fopen("image.raw", "wb");
+//	wprintf(L"w: %d, h: %d\n",
+//			params->sx * FIELD_SZ * 9 - params->sx * FIELD_SZ * 5,
+//			params->sy * FIELD_SZ * 3 - params->sy * FIELD_SZ * 2);
+//
+//	for (uint y = params->sy * FIELD_SZ * 2; y < params->sy * FIELD_SZ * 3; y++)
+//		for (uint x = params->sx * FIELD_SZ * 5; x < params->sx * FIELD_SZ * 9; x++)
+//		{
+//			int res = getColor(x / 10. + 0.5, y / 10. + 0.5);
+//			fwrite(&res, 4, 1, f);
+//		}
+//	fclose(f);
 }
 
 void PanelWorkspace::onStop()
@@ -117,7 +124,7 @@ void PanelWorkspace::eventRender(cairo_t* cairo)
 	{
 		cairo_arc(
 				cairo, params->robot.getX() / CELL_SIZE * sz,
-				params->robot.getY() / CELL_SIZE * sz,
+				field.height - params->robot.getY() / CELL_SIZE * sz,
 				(rotRmin + rotRmax) / 2, 0, 2 * M_PI);
 		cairo_set_source_rgba(cairo, 0.7, 0.1, 0.1, pickControlCircle ? 0.2 : 0.4);
 		cairo_set_line_width(cairo, rotRmax - rotRmin);
@@ -141,12 +148,12 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 	if (event.getButton() == M_BUTTON_L_DOWN && activeRobot && !pickControlCircle)
 	{
 		double dx = event.x - field.x - params->robot.getX() / CELL_SIZE * sz;
-		double dy = event.y - field.y - params->robot.getY() / CELL_SIZE * sz;
+		double dy = event.y - field.y - (field.height - params->robot.getY() / CELL_SIZE * sz);
 		double d = dx * dx + dy * dy;
 		if (d > rotRmin * rotRmin && d < rotRmax * rotRmax)
 		{
 			pickControlCircle = true;
-			pickDA = atan2(dy, dx) - params->robot.getAngle();
+			pickDA = params->robot.getAngle() + atan2(dy, dx);
 			setRender();
 		}
 	}
@@ -156,7 +163,7 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 			(event.getButton() == M_BUTTON_L_DOWN && !activeRobot))
 	{
 		double realX = (event.x - field.x) * CELL_SIZE / sz;
-		double realY = (event.y - field.y) * CELL_SIZE / sz;
+		double realY = (field.height - (event.y - field.y)) * CELL_SIZE / sz;
 		bool isRobot = params->robot.isRobot(realX, realY);
 
 		if (isRobot && event.getButton() == M_BUTTON_L_DOWN)
@@ -195,7 +202,7 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 	if (pickRobot)
 	{
 		double realX = (event.x - field.x) * CELL_SIZE / sz;
-		double realY = (event.y - field.y) * CELL_SIZE / sz;
+		double realY = (field.height - (event.y - field.y)) * CELL_SIZE / sz;
 
 		params->robot.moveTo(realX + pickDx, realY + pickDy, params->robot.getAngle());
 
@@ -206,9 +213,9 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 	if (pickControlCircle)
 	{
 		double dx = event.x - field.x - params->robot.getX() / CELL_SIZE * sz;
-		double dy = event.y - field.y - params->robot.getY() / CELL_SIZE * sz;
+		double dy = event.y - field.y - (field.height - params->robot.getY() / CELL_SIZE * sz);
 
-		params->robot.moveTo(params->robot.getX(), params->robot.getY(), atan2(dy, dx) - pickDA);
+		params->robot.moveTo(params->robot.getX(), params->robot.getY(), pickDA - atan2(dy, dx));
 
 		setRender();
 	}
@@ -269,6 +276,63 @@ void PanelWorkspace::drawField(cairo_t* cairo, uint sz)
 void PanelWorkspace::updateParams()
 {
 	eventReshape(rect);
+}
+
+int PanelWorkspace::getColor(double x, double y)
+{
+	Params* params = core->getParams();
+
+	int width = params->sx * FIELD_SZ;
+	int height = params->sy * FIELD_SZ;
+
+	x = x / CELL_SIZE * FIELD_SZ;
+	y = height - y / CELL_SIZE * FIELD_SZ;
+
+	if (x < 0.5) x = 0.5;
+	if (y < 0.5) y = 0.5;
+	if (x > width - 0.5) x = width - 0.5;
+	if (y > height - 0.5) x = height - 0.5;
+
+	int x0 = x, y0 = y;
+
+	// 0 1    1 0    2 3    3 2
+	// 2 3 or 3 2 or 0 1 or 1 0
+	uint8_t* pix0 = fieldData + y0 * fieldStride + x0 * 4;
+	uint8_t* pix1 = pix0, *pix2 = pix0, *pix3 = pix0;
+
+	double cx = x0 + 0.5, cy = y0 + 0.5; // Центр клетки
+
+	if (x < cx)
+	{
+		if (x0 > 0) { pix1 -= 4; pix3 -= 4; }
+	}
+	else
+	{
+		if (x0 < width - 1) { pix1 += 4; pix3 += 4; }
+	}
+
+	if (y < cy)
+	{
+		if (y0 > 0) { pix2 -= fieldStride; pix3 -= fieldStride; }
+	}
+	else
+	{
+		if (y0 < height - 1) { pix2 += fieldStride; pix3 += fieldStride; }
+	}
+
+	float wx = abs(cx - x), wy = abs(cy - y);
+	float w0 = (1 - wx) * (1 - wy);
+	float w1 =    wx    * (1 - wy);
+	float w2 = (1 - wx) *    wy;
+	float w3 =    wx    *    wy;
+
+	int res = 0xffffffff;
+
+	((uint8_t*)&res)[0] = pix0[0] * w0 + pix1[0] * w1 + pix2[0] * w2 + pix3[0] * w3;
+	((uint8_t*)&res)[1] = pix0[1] * w0 + pix1[1] * w1 + pix2[1] * w2 + pix3[1] * w3;
+	((uint8_t*)&res)[2] = pix0[2] * w0 + pix1[2] * w1 + pix2[2] * w2 + pix3[2] * w3;
+
+	return res;
 }
 
 int PanelWorkspace::getMinWight() const
