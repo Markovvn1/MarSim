@@ -208,10 +208,12 @@ void PanelWorkspace::eventMouse(const EventMouse& event)
 	{
 		int x = (event.x - field.x) / sz;
 		int y = (event.y - field.y) / sz;
+		if (x >= 0 && y >= 0 && x < (int)params->sx && y < (int)params->sy)
+		{
+			cells[y * params->sx + x].onClick(event.getButton() == M_BUTTON_R_DOWN);
 
-		cells[y * params->sx + x].onClick(event.getButton() == M_BUTTON_R_DOWN);
-
-		setRender();
+			setRender();
+		}
 	}
 }
 
